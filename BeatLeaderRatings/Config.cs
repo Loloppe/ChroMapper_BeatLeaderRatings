@@ -1,4 +1,4 @@
-﻿namespace BeatLeaderRatings
+﻿namespace Ratings
 {
     internal class Config
     {

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BeatLeaderRatings.AccAi
+namespace Ratings.AccAi
 {
     internal class DataProcessing
     {

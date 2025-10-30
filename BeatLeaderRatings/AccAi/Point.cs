@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BeatLeaderRatings.AccAi
+namespace Ratings.AccAi
 {
     public class Point
     {

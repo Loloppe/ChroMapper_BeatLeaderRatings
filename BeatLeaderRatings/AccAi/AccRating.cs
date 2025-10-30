@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BeatLeaderRatings.AccAi
+namespace Ratings.AccAi
 {
     public class AccRating
     {

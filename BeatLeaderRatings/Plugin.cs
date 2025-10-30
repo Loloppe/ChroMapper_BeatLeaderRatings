@@ -1,7 +1,7 @@
 ﻿using beatleader_analyzer;
 using beatleader_analyzer.BeatmapScanner.Data;
 using beatleader_parser;
-using BeatLeaderRatings.AccAi;
+using Ratings.AccAi;
 using Parser.Map;
 using Parser.Map.Difficulty.V3.Base;
 using System;
@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static BeatLeaderRatings.AccAi.InferPublish;
+using static Ratings.AccAi.InferPublish;
 using Object = UnityEngine.Object;
 
-namespace BeatLeaderRatings
+namespace Ratings
 {
-    [Plugin("BeatLeaderRatings")]
+    [Plugin("Ratings")]
     public class Plugin
     {
         private UI _ui;
@@ -24,21 +24,24 @@ namespace BeatLeaderRatings
         private const int EditorSceneBuildIndex = 3;
         private const int PollIntervalMilliseconds = 1000; // poll interval
 
-        public static readonly Parse Parser = new();
-        public static readonly Analyze Analyzer = new();
+        private static readonly Parse Parser = new();
+        private static readonly Analyze Analyzer = new();
+        private static readonly AccRating AccRating = new();
+        private static readonly Curve Curve = new();
 
         private readonly InferPublish ai = new();
 
         private BeatSaberSongContainer? _beatSaberSongContainer;
         private NoteGridContainer? _noteGridContainer;
         private AudioTimeSyncController? _audioTimeSyncController;
-        private SongTimelineController? _songTimeLineController;
+        public SongTimelineController? _songTimeLineController;
         private MapEditorUI? _mapEditorUI;
 
-        private List<Ratings> AnalyzerData = new();
+        private List<beatleader_analyzer.BeatmapScanner.Data.Ratings> AnalyzerData = new();
         private List<NoteAcc> AccAiData = new();
 
-        private TextMeshProUGUI Label;
+        public TextMeshProUGUI Label;
+        private bool MenuInit = false;
 
         [Init]
         private void Init()
@@ -70,12 +73,11 @@ namespace BeatLeaderRatings
                 if (_noteGridContainer.MapObjects.Count >= 20)
                 {
                     AnalyzerData = Analyzer.GetRating(diff, characteristic, difficulty, map.Info._beatsPerMinute, Config.Timescale);
-
-                    AccAiData = ai.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, Config.Timescale);
+                    AccAiData = ai.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
                 }
                 else
                 {
-                    Debug.LogError("BeatLeaderRatings require 20 or more notes to analyze the map. Current note count: " + _noteGridContainer.MapObjects.Count);
+                    Debug.LogError("Ratings require 20 or more notes to analyze the map. Current note count: " + _noteGridContainer.MapObjects.Count);
                 }
 
                 _audioTimeSyncController.TimeChanged += OnTimeChanged;
@@ -85,7 +87,11 @@ namespace BeatLeaderRatings
                     ApplyUI();
                 }
 
-                _ui.AddMenu(_mapEditorUI);
+                if (!MenuInit)
+                {
+                    _ui.AddMenu(_mapEditorUI);
+                    MenuInit = true;
+                }
             }
         }
 
@@ -101,11 +107,12 @@ namespace BeatLeaderRatings
 
             if (_noteGridContainer.MapObjects.Count >= 20)
             {
-                AnalyzerData = Analyzer.GetRating(diff, characteristic, difficulty, map.Info._beatsPerMinute);
+                AnalyzerData = Analyzer.GetRating(diff, characteristic, difficulty, map.Info._beatsPerMinute, Config.Timescale);
+                AccAiData = ai.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
             }
             else
             {
-                Debug.LogError("BeatLeaderRatings require 20 or more notes to analyze the map. Current note count: " + _noteGridContainer.MapObjects.Count);
+                Debug.LogError("Ratings require 20 or more notes to analyze the map. Current note count: " + _noteGridContainer.MapObjects.Count);
             }
         }
 
@@ -126,16 +133,15 @@ namespace BeatLeaderRatings
         {
             if (!Config.Enabled)
             {
-                Label.text = "";
                 return;
             }
 
-            var notes = _noteGridContainer.MapObjects.OrderBy(o => o.JsonTime).ToList();
-            var time = _audioTimeSyncController.CurrentJsonTime;
+            float time = _audioTimeSyncController.CurrentJsonTime;
+            float seconds = _audioTimeSyncController.CurrentSeconds;
 
-            var data = AnalyzerData.FirstOrDefault();
-            var timeData = data.PerSwing.Where(x => x.Time >= time).Take(Config.NotesCount).ToList();
-            var accData = AccAiData.Where(x => x.time >= time).Take(Config.NotesCount).ToList();
+            beatleader_analyzer.BeatmapScanner.Data.Ratings data = AnalyzerData.FirstOrDefault();
+            List<PerSwing> timeData = data.PerSwing.Where(x => x.Time >= time).Take(Config.NotesCount).ToList();
+            List<NoteAcc> accData = AccAiData.Where(x => x.time >= seconds).Take(Config.NotesCount).ToList();
             if (timeData.Count <= 1 || accData.Count <= 1)
             {
                 Label.text = "Not enough data available.";
@@ -146,17 +152,15 @@ namespace BeatLeaderRatings
             float avgTechRating = (float)timeData.Average(x => x.Tech);
             float avgAcc = (float)accData.Average(x => x.acc);
 
-            AccRating ar = new();
-            float accRating = ar.GetRating(avgAcc, avgPassRating, avgTechRating);
-            Curve curve = new();
-            var pointList = curve.GetCurve(avgAcc, accRating);
-            var star = curve.ToStars(0.96f, accRating, avgPassRating, avgTechRating, pointList);
+            float accRating = AccRating.GetRating(avgAcc, avgPassRating, avgTechRating);
+            List<Point> pointList = Curve.GetCurve(avgAcc, accRating);
+            float star = Curve.ToStars(0.96f, accRating, avgPassRating, avgTechRating, pointList);
             
-            Label.text = "Data from next " + timeData.Count + " notes ->" +
-                " Pass: " + Math.Round(avgPassRating, 3).ToString() +
-                " Tech: " + Math.Round(avgTechRating, 3).ToString() +
-                " Acc: " + Math.Round(accRating, 3).ToString() + 
-                " Star: " + Math.Round(star, 3).ToString();
+            Label.text = "Data from next " + timeData.Count.ToString("F2") + " notes ->" +
+                " Pass: " + Math.Round(avgPassRating, 3).ToString("F3") +
+                " Tech: " + Math.Round(avgTechRating, 3).ToString("F3") +
+                " Acc: " + Math.Round(accRating, 3).ToString("F3") + 
+                " Star: " + Math.Round(star, 3).ToString("F3");
         }
 
         private void ApplyUI()

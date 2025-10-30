@@ -5,11 +5,12 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace BeatLeaderRatings
+namespace Ratings
 {
     internal class UI
     {
         private GameObject _ratingsMenu;
+        private GameObject _ratingsBG;
         private readonly Plugin _ratings;
         private readonly ExtensionButton _extensionBtn = new ExtensionButton();
 
@@ -17,7 +18,7 @@ namespace BeatLeaderRatings
         {
             this._ratings = ratings;
 
-            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("BeatLeaderRatings.Icon.png");
+            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Ratings.Icon.png");
             byte[] data = new byte[stream.Length];
             stream.Read(data, 0, (int)stream.Length);
 
@@ -42,6 +43,18 @@ namespace BeatLeaderRatings
             image.type = Image.Type.Sliced;
             image.color = new Color(0.24f, 0.24f, 0.24f);
 
+            var songTimeText = _ratings._songTimeLineController.transform.Find("Song Time").GetComponent<TextMeshProUGUI>();
+            _ratingsBG = new GameObject("Ratings BG");
+            _ratingsBG.transform.parent = songTimeText.transform;
+
+            AttachTransform(_ratingsBG, 425, 20, 1, 1, 0, 0, 1, 1);
+            _ratingsBG.transform.localPosition -= new Vector3(485, 14, 0);
+
+            image = _ratingsBG.AddComponent<Image>();
+            image.sprite = PersistentUI.Instance.Sprites.Background;
+            image.type = Image.Type.Sliced;
+            image.color = new Color(0.2f, 0.2f, 0.2f);
+
             // Button
             AddLabel(_ratingsMenu.transform, "Ratings", "Save then press", new Vector2(-90, -25));
             AddButton(_ratingsMenu.transform, "Reload", "Reload Map", new Vector2(-90, -55), () =>
@@ -55,6 +68,8 @@ namespace BeatLeaderRatings
             AddCheckbox(_ratingsMenu.transform, "Enable", "Enabled", new Vector2(15, -60), Config.Enabled, (check) =>
             {
                 Config.Enabled = check;
+                _ratingsBG.SetActive(check);
+                _ratings.Label.gameObject.SetActive(check);
             });
 
             // Textbox
@@ -75,11 +90,12 @@ namespace BeatLeaderRatings
                 }
             });
 
-            _ratingsMenu.SetActive(false);
             _extensionBtn.Click = () =>
             {
                 _ratingsMenu.SetActive(!_ratingsMenu.activeSelf);
             };
+
+            _ratingsMenu.SetActive(false);
         }
 
         private void AddButton(Transform parent, string title, string text, Vector2 pos, UnityAction onClick)
