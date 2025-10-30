@@ -47,8 +47,8 @@ namespace Ratings
             _ratingsBG = new GameObject("Ratings BG");
             _ratingsBG.transform.parent = songTimeText.transform;
 
-            AttachTransform(_ratingsBG, 425, 20, 1, 1, 0, 0, 1, 1);
-            _ratingsBG.transform.localPosition -= new Vector3(485, 14, 0);
+            AttachTransform(_ratingsBG, 425, 20, 0, 0, 0, 0, 1, 1);
+            _ratingsBG.transform.localPosition += new Vector3(-115, 25, 0);
 
             image = _ratingsBG.AddComponent<Image>();
             image.sprite = PersistentUI.Instance.Sprites.Background;
