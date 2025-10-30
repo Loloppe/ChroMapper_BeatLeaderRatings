@@ -41,7 +41,6 @@ namespace Ratings
         private List<NoteAcc> AccAiData = new();
 
         public TextMeshProUGUI Label;
-        private bool MenuInit = false;
 
         [Init]
         private void Init()
@@ -54,11 +53,11 @@ namespace Ratings
         {
             if (arg0.buildIndex == EditorSceneBuildIndex)
             {
+                _mapEditorUI = null;
                 _noteGridContainer = null;
                 _beatSaberSongContainer = null;
                 _audioTimeSyncController = null;
                 _songTimeLineController = null;
-                _mapEditorUI = null;
 
                 await FindObject();
 
@@ -87,11 +86,7 @@ namespace Ratings
                     ApplyUI();
                 }
 
-                if (!MenuInit)
-                {
-                    _ui.AddMenu(_mapEditorUI);
-                    MenuInit = true;
-                }
+                _ui.AddMenu(_mapEditorUI);
             }
         }
 
