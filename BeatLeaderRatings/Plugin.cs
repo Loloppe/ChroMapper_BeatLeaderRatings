@@ -4,6 +4,7 @@ using beatleader_parser;
 using BeatLeaderRatings.AccAi;
 using Parser.Map;
 using Parser.Map.Difficulty.V3.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -70,10 +71,6 @@ namespace BeatLeaderRatings
                     AnalyzerData = Analyzer.GetRating(diff, characteristic, difficulty, map.Info._beatsPerMinute, Config.Timescale);
 
                     AccAiData = ai.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, Config.Timescale);
-                    /*foreach (KeyValuePair<string, object> entry in AccAiData)
-                    {
-                        Debug.LogError($"Key: {entry.Key}, Value: {entry.Value}");
-                    }*/
                 }
                 else
                 {
@@ -146,18 +143,18 @@ namespace BeatLeaderRatings
             float avgPassRating = (float)timeData.Average(x => x.Pass);
             float avgTechRating = (float)timeData.Average(x => x.Tech);
 
-            /*
+            
             AccRating ar = new();
             float accRating = ar.GetRating(predictedAcc, avgPassRating, avgTechRating);
             Curve curve = new();
             var pointList = curve.GetCurve(predictedAcc, accRating);
             var star = curve.ToStars(0.96f, accRating, avgPassRating, avgTechRating, pointList);
-
+            
             Label.text = "Data from next " + timeData.Count + " notes ->" +
                 " Pass: " + Math.Round(avgPassRating, 3).ToString() +
-                " Tech: " + Math.Round(avgTechRating, 3).ToString() + 
+                " Tech: " + Math.Round(avgTechRating, 3).ToString() +
                 " Acc: " + Math.Round(accRating, 3).ToString() + 
-                " Star: " + Math.Round(star, 3).ToString();*/
+                " Star: " + Math.Round(star, 3).ToString();
         }
 
         private void ApplyUI()

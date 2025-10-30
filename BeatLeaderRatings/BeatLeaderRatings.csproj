@@ -5,6 +5,7 @@
 	  <LangVersion>preview</LangVersion>
 	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -87,17 +88,17 @@
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
 	  <None Update="dll\Analyzer.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="dll\Microsoft.ML.OnnxRuntime.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="dll\Parser.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command=" xcopy /Y /F &quot;$(ProjectDir)obj\$(Configuration)\netstandard2.1\$(TargetName).dll&quot; &quot;$(ChroMapperDir)\Plugins\&quot;" />
+		<Exec Command=" xcopy /Y /F &quot;$(ProjectDir)bin\x64\$(Configuration)\netstandard2.1\$(TargetName).dll&quot; &quot;$(ChroMapperDir)\Plugins\&quot;" />
 	</Target>
 </Project>
