@@ -96,6 +96,7 @@ namespace Ratings
             };
 
             _ratingsMenu.SetActive(false);
+            if (!Config.Enabled) _ratingsBG.SetActive(false);
         }
 
         private void AddButton(Transform parent, string title, string text, Vector2 pos, UnityAction onClick)
