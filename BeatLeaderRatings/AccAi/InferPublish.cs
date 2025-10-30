@@ -142,7 +142,13 @@ namespace BeatLeaderRatings.AccAi
             return (accs, noteTimes, freePoints);
         }
 
-        public  Dictionary<string, object>? PredictHitsForMapNotes(DifficultyV3 mapdata, double bpm, double njs, double timescale = 1, double? fixedTimeDistance = null, double? fixedNjs = null)
+        public class NoteAcc
+        {
+            public float acc { get; set; }
+            public double time { get; set; }
+        }
+
+        public  List<NoteAcc> PredictHitsForMapNotes(DifficultyV3 mapdata, double bpm, double njs, double timescale = 1, double? fixedTimeDistance = null, double? fixedNjs = null)
         {
             var (accs, noteTimes, freePoints) = PredictHitsForMap(mapdata, bpm, njs, timescale);
             double AIacc = GetMapAccForHits(accs, freePoints);
@@ -151,15 +157,7 @@ namespace BeatLeaderRatings.AccAi
 
             var rows = accs.Select((acc, index) => new List<double> { acc, noteTimes[index] });
 
-
-            var notes = new Dictionary<string, object>
-            {
-                ["columns"] = new[] { "acc", "note_time" },
-                ["rows"] = rows,
-                ["AIacc"] = AIacc,
-            };
-
-            return notes;
+            return accs.Select((acc, index) => new NoteAcc { acc = acc, time = noteTimes[index] }).ToList();
         }
 
         List<(double, double)> scaleCurve = new List<(double, double)>() {

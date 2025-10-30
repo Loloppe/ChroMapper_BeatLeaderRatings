@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static BeatLeaderRatings.AccAi.InferPublish;
 using Object = UnityEngine.Object;
 
 namespace BeatLeaderRatings
@@ -35,7 +36,7 @@ namespace BeatLeaderRatings
         private MapEditorUI? _mapEditorUI;
 
         private List<Ratings> AnalyzerData = new();
-        private Dictionary<string, object> AccAiData = new();
+        private List<NoteAcc> AccAiData = new();
 
         private TextMeshProUGUI Label;
 
@@ -134,7 +135,8 @@ namespace BeatLeaderRatings
 
             var data = AnalyzerData.FirstOrDefault();
             var timeData = data.PerSwing.Where(x => x.Time >= time).Take(Config.NotesCount).ToList();
-            if (timeData.Count <= 1)
+            var accData = AccAiData.Where(x => x.time >= time).Take(Config.NotesCount).ToList();
+            if (timeData.Count <= 1 || accData.Count <= 1)
             {
                 Label.text = "Not enough data available.";
                 return;
@@ -142,12 +144,12 @@ namespace BeatLeaderRatings
 
             float avgPassRating = (float)timeData.Average(x => x.Pass);
             float avgTechRating = (float)timeData.Average(x => x.Tech);
+            float avgAcc = (float)accData.Average(x => x.acc);
 
-            
             AccRating ar = new();
-            float accRating = ar.GetRating(predictedAcc, avgPassRating, avgTechRating);
+            float accRating = ar.GetRating(avgAcc, avgPassRating, avgTechRating);
             Curve curve = new();
-            var pointList = curve.GetCurve(predictedAcc, accRating);
+            var pointList = curve.GetCurve(avgAcc, accRating);
             var star = curve.ToStars(0.96f, accRating, avgPassRating, avgTechRating, pointList);
             
             Label.text = "Data from next " + timeData.Count + " notes ->" +
