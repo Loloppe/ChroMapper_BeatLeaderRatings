@@ -57,13 +57,14 @@ namespace Ratings.AccAi
         }
 
         // Method to get map notes from json
-        public static List<Tuple<double, string>> GetMapNotesFromJson(DifficultyV3 mapdata, double bpm)
+        public static List<Tuple<double, string, double>> GetMapNotesFromJson(DifficultyV3 mapdata, double bpm)
         {
-            List<Tuple<double, string>> mapNotes = mapdata.Notes
+            List<Tuple<double, string, double>> mapNotes = mapdata.Notes
                     .Where(n => n.x < 1000 && n.x >= 0 && n.y < 1000 && n.y >= 0)
                     .Select(n => Tuple.Create(
                         (double)n.Seconds,
-                        $"{n.x}{n.y}{GetNoteDirection(n.CutDirection, n.AngleOffset)}{n.Color}"
+                        $"{n.x}{n.y}{GetNoteDirection(n.CutDirection, n.AngleOffset)}{n.Color}",
+                        (double)n.njs
                     ))
                     .OrderBy(x => x.Item1).ThenBy(x => x.Item2)
                     .ToList();
@@ -125,7 +126,7 @@ namespace Ratings.AccAi
             return response;
         }
 
-        public static Tuple<List<double[]>, List<double>> PreprocessMapNotes(List<Tuple<double, string>> mapNotes, double njs, double timeScale)
+        public static Tuple<List<double[]>, List<double>> PreprocessMapNotes(List<Tuple<double, string, double>> mapNotes, double timeScale, double njsMult = 1)
         {
             List<List<double>> notes = new();
             List<double> noteTimes = new();
@@ -138,6 +139,7 @@ namespace Ratings.AccAi
                 double noteTime = note.Item1;
                 int[] noteInfo = note.Item2.Select(s => s - '0').ToArray();
                 int type = noteInfo.Last();
+                double njs = note.Item3 * njsMult;
 
                 double deltaToZero = noteTime - prevZeroNoteTime;
                 double deltaToOne = noteTime - prevOneNoteTime;
@@ -222,14 +224,14 @@ namespace Ratings.AccAi
             return segmentCount * 20 * 8;
         }
 
-        public (List<Tuple<double, string>> mapNotes, int freePoints) GetMapData(DifficultyV3 mapdata, double bpm)
+        public (List<Tuple<double, string, double>> mapNotes, int freePoints) GetMapData(DifficultyV3 mapdata, double bpm)
         {
             var mapNotes = GetMapNotesFromJson(mapdata, bpm);
             var freePoints = GetFreePointsForMap(mapdata);
             return (mapNotes, freePoints);
         }
 
-        public (List<List<double[]>> segments, List<double> noteTimes, int freePoints) PreprocessMap(DifficultyV3 mapdata, double bpm, double njs, double timescale)
+        public (List<List<double[]>> segments, List<double> noteTimes, int freePoints) PreprocessMap(DifficultyV3 mapdata, double bpm, double timescale, double njsMult = 1)
         {
             var emptyResponse = (new List<List<double[]>>(), new List<double>(), 0);
             var (mapNotes, freePoints) = GetMapData(mapdata, bpm);
@@ -238,7 +240,7 @@ namespace Ratings.AccAi
                 return emptyResponse;
             }
 
-            var (notes, noteTimes) = PreprocessMapNotes(mapNotes, njs, timescale);
+            var (notes, noteTimes) = PreprocessMapNotes(mapNotes, timescale, njsMult);
             List<List<double[]>> segments = CreateSegments(notes);
             return (segments, noteTimes, freePoints);
         }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
    <PropertyGroup>
-	<AssemblyVersion>1.0.0.0</AssemblyVersion>
-	<FileVersion>1.0.0.0</FileVersion>
+	<AssemblyVersion>1.0.1.0</AssemblyVersion>
+	<FileVersion>1.0.1.0</FileVersion>
 	<Copyright>Loloppe</Copyright>
     <TargetFramework>netstandard2.1</TargetFramework>
 	<LangVersion>preview</LangVersion>
@@ -39,6 +39,9 @@
 		<Reference Include="Microsoft.ML.OnnxRuntime">
 		  <HintPath>dll\Microsoft.ML.OnnxRuntime.dll</HintPath>
 		  <Private>True</Private>
+		</Reference>
+		<Reference Include="Newtonsoft.Json">
+		  <HintPath>$(ChroMapperDir)\ChroMapper_Data\Managed\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Parser">
 		  <HintPath>dll\Parser.dll</HintPath>
@@ -79,12 +82,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="AccAi\onnx\model_sleep_4LSTM_acc.onnx">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </None>
-	  <None Update="AccAi\onnx\model_sleep_4LSTM_speed.onnx">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </None>
 	  <None Update="dll\Analyzer.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

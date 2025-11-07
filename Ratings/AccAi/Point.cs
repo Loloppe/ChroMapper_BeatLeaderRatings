@@ -4,21 +4,21 @@ namespace Ratings.AccAi
 {
     public class Point
     {
-        public float x { get; set; } = 0;
-        public float y { get; set; } = 0;
+        public double x { get; set; } = 0;
+        public double y { get; set; } = 0;
 
         public Point()
         {
 
         }
 
-        public Point(float x, float y)
+        public Point(double x, double y)
         {
             this.x = x;
             this.y = y;
         }
 
-        public List<Point> ToPoints(List<(float x, float y)> curve)
+        public List<Point> ToPoints(List<(double x, double y)> curve)
         {
             List<Point> points = new();
 

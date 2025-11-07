@@ -41,19 +41,19 @@ namespace Ratings.AccAi
                 (0.0, 0.000)
         };
 
-        public float GetRating(float? predictedAcc, float? passRating, float? techRating)
+        public double GetRating(double? predictedAcc, double? passRating, double? techRating)
         {
-            float difficulty_to_acc;
+            double difficulty_to_acc;
             if (predictedAcc > 0)
             {
-                difficulty_to_acc = 15f / Curve((predictedAcc ?? 0) + 0.0022f);
+                difficulty_to_acc = 15.375f / Curve((predictedAcc ?? 0) + 0.0022f);
             }
             else
             {
-                float tiny_tech = 0.0208f * (techRating ?? 0) + 1.1284f;
-                difficulty_to_acc = (float)(-Math.Pow(tiny_tech, -(passRating ?? 0)) + 1) * 8 + 2 + 0.01f * (techRating ?? 0) * (passRating ?? 0);
+                double tiny_tech = 0.0208f * (techRating ?? 0) + 1.1284f;
+                difficulty_to_acc = (-Math.Pow(tiny_tech, -(passRating ?? 0)) + 1) * 8 + 2 + 0.01f * (techRating ?? 0) * (passRating ?? 0);
             }
-            if (float.IsInfinity(difficulty_to_acc) || float.IsNaN(difficulty_to_acc) || float.IsNegativeInfinity(difficulty_to_acc))
+            if (double.IsInfinity(difficulty_to_acc) || double.IsNaN(difficulty_to_acc) || double.IsNegativeInfinity(difficulty_to_acc))
             {
                 difficulty_to_acc = 0;
             }

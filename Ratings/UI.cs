@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using TMPro;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace Ratings
         private GameObject _ratingsBG;
         private readonly Plugin _ratings;
         private readonly ExtensionButton _extensionBtn = new ExtensionButton();
+        private List<TMP_InputField> _values = new List<TMP_InputField>();
 
         public UI(Plugin ratings)
         {
@@ -36,7 +38,7 @@ namespace Ratings
             _ratingsMenu = new GameObject("Ratings Menu");
             _ratingsMenu.transform.parent = parent.transform;
 
-            AttachTransform(_ratingsMenu, 300, 80, 1, 1, 0, 0, 1, 1);
+            AttachTransform(_ratingsMenu, 300, 140, 1, 1, 0, 0, 1, 1);
 
             Image image = _ratingsMenu.AddComponent<Image>();
             image.sprite = PersistentUI.Instance.Sprites.Background;
@@ -55,40 +57,66 @@ namespace Ratings
             image.type = Image.Type.Sliced;
             image.color = new Color(0.2f, 0.2f, 0.2f);
 
-            // Button
+            // Column 1
             AddLabel(_ratingsMenu.transform, "Ratings", "Save then press", new Vector2(-90, -25));
             AddButton(_ratingsMenu.transform, "Reload", "Reload Map", new Vector2(-90, -55), () =>
             {
                 _ratings.Reload();
             });
-
-
-            // Options
-            AddLabel(_ratingsMenu.transform, "Enable", "Enable Plugin", new Vector2(-10, -25));
-            AddCheckbox(_ratingsMenu.transform, "Enable", "Enabled", new Vector2(15, -60), Config.Enabled, (check) =>
+            AddTextInput(_ratingsMenu.transform, "PredictedAcc", "Pred. %", new Vector2(-110, -85), System.Math.Round(_ratings.PredictedAcc * 100, 3).ToString(), (value) =>
             {
-                Config.Enabled = check;
+            }, false, true, "AI predicted accuracy %");
+            AddTextInput(_ratingsMenu.transform, "Acc", "Acc", new Vector2(-110, -115), System.Math.Round(_ratings.Acc, 3).ToString(), (value) =>
+            {
+            }, false, true);
+
+            // Column 2
+            AddLabel(_ratingsMenu.transform, "Enable", "Enable Plugin", new Vector2(-10, -25));
+            AddCheckbox(_ratingsMenu.transform, "Enable", "Enabled", new Vector2(15, -60), _ratings.Config.Enabled, (check) =>
+            {
+                _ratings.Config.Enabled = check;
                 _ratingsBG.SetActive(check);
                 _ratings.Label.gameObject.SetActive(check);
+                _ratings.SaveConfigFile();
             });
+            AddTextInput(_ratingsMenu.transform, "StarRating", "Star", new Vector2(-20, -85), System.Math.Round(_ratings.Star, 3).ToString(), (value) =>
+            {
+            }, false, true);
+            AddTextInput(_ratingsMenu.transform, "Tech", "Tech", new Vector2(-20, -115), System.Math.Round(_ratings.Tech * 10, 3).ToString(), (value) =>
+            {
+            }, false, true);
 
-            // Textbox
-            AddTextInput(_ratingsMenu.transform, "Timescale", "Timescale", new Vector2(80, -25), Config.Timescale.ToString(), (value) =>
+            // Column 3
+            AddTextInput(_ratingsMenu.transform, "Timescale", "Timescale", new Vector2(80, -25), _ratings.Config.Timescale.ToString(), (value) =>
             {
                 float res;
                 if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
                 {
-                    Config.Timescale = res;
+                    _ratings.Config.Timescale = res;
                 }
-            });
-            AddTextInput(_ratingsMenu.transform, "NoteCount", "Note Count", new Vector2(80, -55), Config.NotesCount.ToString(), (value) =>
+                _ratings.SaveConfigFile();
+            }, true, false, "SS: 0.85, FS: 1.2, SFS: 1.5");
+            AddTextInput(_ratingsMenu.transform, "NoteCount", "Note Count", new Vector2(80, -55), _ratings.Config.NotesCount.ToString(), (value) =>
             {
                 int res;
                 if (int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
                 {
-                    Config.NotesCount = res;
+                    _ratings.Config.NotesCount = res;
                 }
-            });
+                _ratings.SaveConfigFile();
+            }, true, false, "How many notes to consider for the average");
+            AddTextInput(_ratingsMenu.transform, "StarAccuracy", "Star Calc", new Vector2(80, -85), _ratings.Config.StarAccuracy.ToString(), (value) =>
+            {
+                float res;
+                if (float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture.NumberFormat, out res))
+                {
+                    _ratings.Config.StarAccuracy = res;
+                }
+                _ratings.SaveConfigFile();
+            }, true, false, "Accuracy used to calculate Star Rating");
+            AddTextInput(_ratingsMenu.transform, "Pass", "Pass", new Vector2(80, -115), System.Math.Round(_ratings.Pass, 3).ToString(), (value) =>
+            {
+            }, false, true);
 
             _extensionBtn.Click = () =>
             {
@@ -96,7 +124,7 @@ namespace Ratings
             };
 
             _ratingsMenu.SetActive(false);
-            if (!Config.Enabled) _ratingsBG.SetActive(false);
+            if (!_ratings.Config.Enabled) _ratingsBG.SetActive(false);
         }
 
         private void AddButton(Transform parent, string title, string text, Vector2 pos, UnityAction onClick)
@@ -128,7 +156,7 @@ namespace Ratings
             textComponent.text = text;
         }
 
-        private void AddTextInput(Transform parent, string title, string text, Vector2 pos, string value, UnityAction<string> onChange)
+        private void AddTextInput(Transform parent, string title, string text, Vector2 pos, string value, UnityAction<string> onChange, bool interactable = true, bool store = false, string tooltip = "")
         {
             var entryLabel = new GameObject(title + " Label", typeof(TextMeshProUGUI));
             var rectTransform = ((RectTransform)entryLabel.transform);
@@ -151,7 +179,18 @@ namespace Ratings
             textInput.InputField.textComponent.alignment = TextAlignmentOptions.Left;
             textInput.InputField.textComponent.fontSize = 10;
 
+            if (store)
+                _values.Add(textInput.InputField);
+
             textInput.InputField.onValueChanged.AddListener(onChange);
+            if (!interactable)
+                textInput.InputField.interactable = false;
+
+            if (!string.IsNullOrWhiteSpace(tooltip))
+            {
+                var tt = textInput.InputField.gameObject.AddComponent<Tooltip>();
+                tt.TooltipOverride = tooltip;
+            }
         }
 
         private void AddCheckbox(Transform parent, string title, string text, Vector2 pos, bool value, UnityAction<bool> onClick)
@@ -202,6 +241,33 @@ namespace Ratings
             rectTransform.pivot = new Vector2(pivotX, pivotY);
             rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(anchorX, anchorY);
             rectTransform.anchoredPosition = new Vector3(anchorPosX, anchorPosY, 0);
+        }
+
+        public void ApplyNewValues()
+        {
+            for (int i = 0; i < _values.Count; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        _values[i].text = System.Math.Round(_ratings.PredictedAcc * 100, 3).ToString();
+                        break;
+                    case 1:
+                        _values[i].text = System.Math.Round(_ratings.Acc, 3).ToString();
+                        break;
+                    case 2:
+                        _values[i].text = System.Math.Round(_ratings.Star, 3).ToString();
+                        break;
+                    case 3:
+                        _values[i].text = System.Math.Round(_ratings.Tech * 10, 3).ToString();
+                        break;
+                    case 4:
+                        _values[i].text = System.Math.Round(_ratings.Pass, 3).ToString();
+                        break;
+                }
+
+                _values[i].ForceLabelUpdate();
+            }
         }
     }
 }

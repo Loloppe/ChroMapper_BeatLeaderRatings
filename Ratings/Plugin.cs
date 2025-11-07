@@ -1,17 +1,22 @@
 ﻿using beatleader_analyzer;
 using beatleader_analyzer.BeatmapScanner.Data;
 using beatleader_parser;
-using Ratings.AccAi;
+using beatleader_parser.Timescale;
+using Newtonsoft.Json;
 using Parser.Map;
 using Parser.Map.Difficulty.V3.Base;
+using Ratings.AccAi;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static Ratings.AccAi.InferPublish;
+using static Ratings.AccAi.PerNote;
 using Object = UnityEngine.Object;
 
 namespace Ratings
@@ -29,7 +34,8 @@ namespace Ratings
         private static readonly AccRating AccRating = new();
         private static readonly Curve Curve = new();
 
-        private readonly InferPublish ai = new();
+        private readonly PerNote PerNote = new();
+        private readonly Full Full = new();
 
         private BeatSaberSongContainer? _beatSaberSongContainer;
         private NoteGridContainer? _noteGridContainer;
@@ -40,6 +46,13 @@ namespace Ratings
         private List<beatleader_analyzer.BeatmapScanner.Data.Ratings> AnalyzerData = new();
         private List<NoteAcc> AccAiData = new();
 
+        public double PredictedAcc = 0f;
+        public double Acc = 0f;
+        public double Tech = 0f;
+        public double Pass = 0f;
+        public double Star = 0f;
+
+        public Config Config = new();
         public TextMeshProUGUI Label;
 
         [Init]
@@ -47,6 +60,24 @@ namespace Ratings
         {
             SceneManager.sceneLoaded += SceneLoaded;
             _ui = new UI(this);
+            LoadConfigFile();
+        }
+
+        private void LoadConfigFile()
+        {
+            string path = Path.Combine(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)), "Ratings.json");
+            if (File.Exists(path))
+            {
+                string json = File.ReadAllText(path);
+                Config = JsonConvert.DeserializeObject<Config>(json);
+            }
+        }
+
+        public void SaveConfigFile()
+        {
+            string path = Path.Combine(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)), "Ratings.json");
+            string json = JsonConvert.SerializeObject(Config);
+            File.WriteAllText(path, json);
         }
 
         private async void SceneLoaded(Scene arg0, LoadSceneMode arg1)
@@ -72,7 +103,19 @@ namespace Ratings
                 if (_noteGridContainer.MapObjects.Count >= 20)
                 {
                     AnalyzerData = Analyzer.GetRating(diff, characteristic, difficulty, map.Info._beatsPerMinute, Config.Timescale);
-                    AccAiData = ai.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
+                    var data = AnalyzerData.FirstOrDefault();
+                    if (data != null)
+                    {
+                        Tech = data.Tech;
+                        Pass = data.Pass;
+                        PredictedAcc = Full.GetAIAcc(diff, _beatSaberSongContainer.Info.BeatsPerMinute, Config.Timescale);
+                        Acc = AccRating.GetRating(PredictedAcc, Pass, Tech);
+                        Acc *= data.Nerf;
+                        List<Point> pointList = Curve.GetCurve(PredictedAcc, Acc);
+                        Star = Curve.ToStars(Config.StarAccuracy, Acc, Pass, Tech, pointList);
+                    }
+                    AccAiData = PerNote.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
+                    _ui.ApplyNewValues();
                 }
                 else
                 {
@@ -103,7 +146,19 @@ namespace Ratings
             if (_noteGridContainer.MapObjects.Count >= 20)
             {
                 AnalyzerData = Analyzer.GetRating(diff, characteristic, difficulty, map.Info._beatsPerMinute, Config.Timescale);
-                AccAiData = ai.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
+                var data = AnalyzerData.FirstOrDefault();
+                if (data != null)
+                {
+                    Tech = data.Tech;
+                    Pass = data.Pass;
+                    PredictedAcc = Full.GetAIAcc(diff, _beatSaberSongContainer.Info.BeatsPerMinute, Config.Timescale);
+                    Acc = AccRating.GetRating(PredictedAcc, Pass, Tech);
+                    Acc *= data.Nerf;
+                    List<Point> pointList = Curve.GetCurve(PredictedAcc, Acc);
+                    Star = Curve.ToStars(Config.StarAccuracy, Acc, Pass, Tech, pointList);
+                }
+                AccAiData = PerNote.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
+                _ui.ApplyNewValues();
             }
             else
             {
@@ -143,13 +198,13 @@ namespace Ratings
                 return;
             }
 
-            float avgPassRating = (float)timeData.Average(x => x.Pass);
-            float avgTechRating = (float)timeData.Average(x => x.Tech);
-            float avgAcc = (float)accData.Average(x => x.acc);
+            double avgPassRating = timeData.Average(x => x.Pass);
+            double avgTechRating = timeData.Average(x => x.Tech);
+            double avgAcc = accData.Average(x => x.acc);
 
-            float accRating = AccRating.GetRating(avgAcc, avgPassRating, avgTechRating);
+            double accRating = AccRating.GetRating(avgAcc, avgPassRating, avgTechRating);
             List<Point> pointList = Curve.GetCurve(avgAcc, accRating);
-            float star = Curve.ToStars(0.96f, accRating, avgPassRating, avgTechRating, pointList);
+            double star = Curve.ToStars(Config.StarAccuracy, accRating, avgPassRating, avgTechRating, pointList);
             
             Label.text = "Data from next " + timeData.Count.ToString("F2") + " notes ->" +
                 " Pass: " + Math.Round(avgPassRating, 3).ToString("F3") +

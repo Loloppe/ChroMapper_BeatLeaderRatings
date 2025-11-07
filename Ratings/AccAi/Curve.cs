@@ -6,44 +6,44 @@ namespace Ratings.AccAi
 {
     internal class Curve
     {
-        public List<(float x, float y)> baseCurve = new()
+        public List<(double x, double y)> baseCurve = new()
         {
-                (1.0f, 7.424f),
-                (0.999f, 6.241f),
-                (0.9975f, 5.158f),
-                (0.995f, 4.010f),
-                (0.9925f, 3.241f),
-                (0.99f, 2.700f),
-                (0.9875f, 2.303f),
-                (0.985f, 2.007f),
-                (0.9825f, 1.786f),
-                (0.98f, 1.618f),
-                (0.9775f, 1.490f),
-                (0.975f, 1.392f),
-                (0.9725f, 1.315f),
-                (0.97f, 1.256f),
-                (0.965f, 1.167f),
-                (0.96f, 1.094f),
-                (0.955f, 1.039f),
-                (0.95f, 1.000f),
-                (0.94f, 0.931f),
-                (0.93f, 0.867f),
-                (0.92f, 0.813f),
-                (0.91f, 0.768f),
-                (0.9f, 0.729f),
-                (0.875f, 0.650f),
-                (0.85f, 0.581f),
-                (0.825f, 0.522f),
-                (0.8f, 0.473f),
-                (0.75f, 0.404f),
-                (0.7f, 0.345f),
-                (0.65f, 0.296f),
-                (0.6f, 0.256f),
-                (0.0f, 0.000f)};
+                (1.0, 7.424),
+                (0.999, 6.241),
+                (0.9975, 5.158),
+                (0.995, 4.010),
+                (0.9925, 3.241),
+                (0.99, 2.700),
+                (0.9875, 2.303),
+                (0.985, 2.007),
+                (0.9825, 1.786),
+                (0.98, 1.618),
+                (0.9775, 1.490),
+                (0.975, 1.392),
+                (0.9725, 1.315),
+                (0.97, 1.256),
+                (0.965, 1.167),
+                (0.96, 1.094),
+                (0.955, 1.039),
+                (0.95, 1.000),
+                (0.94, 0.931),
+                (0.93, 0.867),
+                (0.92, 0.813),
+                (0.91, 0.768),
+                (0.9, 0.729),
+                (0.875, 0.650),
+                (0.85, 0.581),
+                (0.825, 0.522),
+                (0.8, 0.473),
+                (0.75, 0.404),
+                (0.7, 0.345),
+                (0.65, 0.296),
+                (0.6, 0.256),
+                (0.0, 0.000)};
 
-        public List<Point> GetCurve(float predictedAcc, float accRating)
+        public List<Point> GetCurve(double predictedAcc, double accRating)
         {
-            List<(float x, float y)> points = baseCurve.ToList();
+            List<(double x, double y)> points = baseCurve.ToList();
 
             Point point = new();
             List<Point> curve = point.ToPoints(points).ToList();
@@ -52,22 +52,22 @@ namespace Ratings.AccAi
             return curve;
         }
 
-        public float ToStars(float acc, float accRating, float passRating, float techRating, List<Point> curve)
+        public double ToStars(double acc, double accRating, double passRating, double techRating, List<Point> curve)
         {
-            float passPP = 15.2f * MathF.Exp(MathF.Pow(passRating, 1 / 2.62f)) - 30f;
-            if (float.IsInfinity(passPP) || float.IsNaN(passPP) || float.IsNegativeInfinity(passPP) || passPP < 0)
+            double passPP = 15.2f * MathF.Exp(MathF.Pow((float)passRating, 1 / 2.62f)) - 30f;
+            if (double.IsInfinity(passPP) || double.IsNaN(passPP) || double.IsNegativeInfinity(passPP) || passPP < 0)
             {
                 passPP = 0;
             }
-            float accPP = Curve2(acc, curve) * accRating * 34f;
-            float techPP = MathF.Exp((float)(1.9 * acc)) * 1.08f * techRating;
+            double accPP = Curve2(acc, curve) * accRating * 34f;
+            double techPP = MathF.Exp((float)(1.9 * acc)) * 1.08f * techRating;
 
-            float pp = 650f * MathF.Pow((float)(passPP + accPP + techPP), 1.3f) / MathF.Pow(650f, 1.3f);
+            double pp = 650f * MathF.Pow((float)(passPP + accPP + techPP), 1.3f) / MathF.Pow(650f, 1.3f);
 
             return pp / 52;
         }
 
-        public float Curve2(float acc, List<Point> curve)
+        public double Curve2(double acc, List<Point> curve)
         {
             int i = 0;
             for (; i < curve.Count; i++)
@@ -83,7 +83,7 @@ namespace Ratings.AccAi
                 i = 1;
             }
 
-            float middle_dis = (acc - curve[i - 1].x) / (curve[i].x - curve[i - 1].x);
+            double middle_dis = (acc - curve[i - 1].x) / (curve[i].x - curve[i - 1].x);
             return (float)(curve[i - 1].y + middle_dis * (curve[i].y - curve[i - 1].y));
         }
     }

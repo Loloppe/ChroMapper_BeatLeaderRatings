@@ -9,14 +9,13 @@ using System.Reflection;
 
 namespace Ratings.AccAi
 {
-    internal class InferPublish
+    internal class PerNote
     {
         private const int BatchSize = 4;
         private const int NumThreads = 4;
         private DataProcessing dataProcessing = new DataProcessing();
 
-        private InferenceSession inferenceSessionAcc = new InferenceSession(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "model_sleep_4LSTM_acc.onnx"), new SessionOptions { IntraOpNumThreads = NumThreads, ExecutionMode = ExecutionMode.ORT_SEQUENTIAL });
-        private InferenceSession inferenceSessionSpeed = new InferenceSession(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "model_sleep_4LSTM_speed.onnx"), new SessionOptions { IntraOpNumThreads = NumThreads, ExecutionMode = ExecutionMode.ORT_SEQUENTIAL });
+        private InferenceSession inferenceSessionAcc = new InferenceSession(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "model_sleep_bl.onnx"), new SessionOptions { IntraOpNumThreads = NumThreads, ExecutionMode = ExecutionMode.ORT_SEQUENTIAL });
 
         private static object inferenceSessionLock = new();
 
@@ -32,7 +31,7 @@ namespace Ratings.AccAi
 
             lock (inferenceSessionLock)
             {
-                using (var output = (speed ? inferenceSessionSpeed : inferenceSessionAcc).Run(modelInput, new[] { "time_distributed_2" }))
+                using (var output = (inferenceSessionAcc).Run(modelInput, new[] { "time_distributed_2" }))
                 {
                     var flatOutput = (output.First().Value as IEnumerable<float>).ToArray();
                     System.Buffer.BlockCopy(flatOutput, 0, outputs, 0, outputs.Length * sizeof(float));
@@ -54,7 +53,7 @@ namespace Ratings.AccAi
 
         public (List<float>, List<double>, int) PredictHitsForMap(DifficultyV3 mapdata, double bpm, double njs, double timescale = 1)
         {
-            var (segments, noteTimes, freePoints) = dataProcessing.PreprocessMap(mapdata, bpm, njs, timescale);
+            var (segments, noteTimes, freePoints) = dataProcessing.PreprocessMap(mapdata, bpm, timescale);
             if (segments.Count == 0)
             {
                 return (new List<float>(), new List<double>(), freePoints);

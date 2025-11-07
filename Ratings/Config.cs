@@ -1,9 +1,10 @@
 ﻿namespace Ratings
 {
-    internal class Config
+    public class Config
     {
-        public static bool Enabled = true;
-        public static int NotesCount = 96;
-        public static float Timescale = 1f;
+        public bool Enabled { get; set; } = true;
+        public int NotesCount { get; set; } = 96;
+        public float Timescale { get; set; } = 1f;
+        public float StarAccuracy { get; set; } = 0.96f;
     }
 }
