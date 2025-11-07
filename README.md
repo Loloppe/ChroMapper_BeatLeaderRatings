@@ -2,7 +2,7 @@
 
 ## ChroMapper plugin
 
-Display BeatLeader Pass, Tech, Acc and Star rating for an average of notes while mapping  
+Display BeatLeader Pass, Tech, Acc and Star rating for the full map and for an average of notes while mapping  
 
 ### How to install
 Download the latest release (Ratings.zip) here: https://github.com/Loloppe/ChroMapper_Ratings/releases/latest  
@@ -21,3 +21,4 @@ If you want to reload the map, first save the map, then press the Reload Map but
 - Enabled : Can be used to hide the UI and text  
 - Timescale : Simulate a different speed for the map (SS: 0.85, FS: 1.2, SFS: 1.5). You must Reload Map for this to apply  
 - Note Count : Change how many notes to uses from cursor and onward for the average
+- Star Calc : Change the % accuracy used to calculate the star rating (default 0.96)
