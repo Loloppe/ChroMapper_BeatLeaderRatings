@@ -1,7 +1,6 @@
 ﻿using beatleader_analyzer;
 using beatleader_analyzer.BeatmapScanner.Data;
 using beatleader_parser;
-using beatleader_parser.Timescale;
 using Newtonsoft.Json;
 using Parser.Map;
 using Parser.Map.Difficulty.V3.Base;
@@ -11,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -106,7 +104,7 @@ namespace Ratings
                     var data = AnalyzerData.FirstOrDefault();
                     if (data != null)
                     {
-                        Tech = data.Tech;
+                        Tech = data.Tech * 10;
                         Pass = data.Pass;
                         PredictedAcc = Full.GetAIAcc(diff, _beatSaberSongContainer.Info.BeatsPerMinute, Config.Timescale);
                         Acc = AccRating.GetRating(PredictedAcc, Pass, Tech);
@@ -149,7 +147,7 @@ namespace Ratings
                 var data = AnalyzerData.FirstOrDefault();
                 if (data != null)
                 {
-                    Tech = data.Tech;
+                    Tech = data.Tech * 10;
                     Pass = data.Pass;
                     PredictedAcc = Full.GetAIAcc(diff, _beatSaberSongContainer.Info.BeatsPerMinute, Config.Timescale);
                     Acc = AccRating.GetRating(PredictedAcc, Pass, Tech);

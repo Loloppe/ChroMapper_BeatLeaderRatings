@@ -82,7 +82,7 @@ namespace Ratings
             AddTextInput(_ratingsMenu.transform, "StarRating", "Star", new Vector2(-20, -85), System.Math.Round(_ratings.Star, 3).ToString(), (value) =>
             {
             }, false, true);
-            AddTextInput(_ratingsMenu.transform, "Tech", "Tech", new Vector2(-20, -115), System.Math.Round(_ratings.Tech * 10, 3).ToString(), (value) =>
+            AddTextInput(_ratingsMenu.transform, "Tech", "Tech", new Vector2(-20, -115), System.Math.Round(_ratings.Tech, 3).ToString(), (value) =>
             {
             }, false, true);
 
@@ -259,7 +259,7 @@ namespace Ratings
                         _values[i].text = System.Math.Round(_ratings.Star, 3).ToString();
                         break;
                     case 3:
-                        _values[i].text = System.Math.Round(_ratings.Tech * 10, 3).ToString();
+                        _values[i].text = System.Math.Round(_ratings.Tech, 3).ToString();
                         break;
                     case 4:
                         _values[i].text = System.Math.Round(_ratings.Pass, 3).ToString();
