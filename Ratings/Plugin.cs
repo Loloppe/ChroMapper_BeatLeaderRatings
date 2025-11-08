@@ -53,6 +53,8 @@ namespace Ratings
         public Config Config = new();
         public TextMeshProUGUI Label;
 
+        private bool _initialized = false;
+
         [Init]
         private void Init()
         {
@@ -80,6 +82,8 @@ namespace Ratings
 
         private async void SceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
+            _initialized = false;
+
             if (arg0.buildIndex == EditorSceneBuildIndex)
             {
                 _mapEditorUI = null;
@@ -114,6 +118,7 @@ namespace Ratings
                     }
                     AccAiData = PerNote.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
                     _ui.ApplyNewValues();
+                    _initialized = true;
                 }
                 else
                 {
@@ -133,6 +138,8 @@ namespace Ratings
 
         public void Reload()
         {
+            _initialized = false;
+
             BeatmapV3 map = Parser.TryLoadPath(_beatSaberSongContainer.Info.Directory);
             string characteristic = _beatSaberSongContainer.MapDifficultyInfo.Characteristic;
             string difficulty = _beatSaberSongContainer.MapDifficultyInfo.Difficulty;
@@ -157,6 +164,7 @@ namespace Ratings
                 }
                 AccAiData = PerNote.PredictHitsForMapNotes(diff, _beatSaberSongContainer.Info.BeatsPerMinute, _beatSaberSongContainer.MapDifficultyInfo.NoteJumpSpeed, Config.Timescale);
                 _ui.ApplyNewValues();
+                _initialized = true;
             }
             else
             {
@@ -179,7 +187,7 @@ namespace Ratings
 
         private void OnTimeChanged()
         {
-            if (!Config.Enabled)
+            if (!Config.Enabled || !_initialized)
             {
                 return;
             }
