@@ -192,7 +192,7 @@ namespace Ratings
                 return;
             }
 
-            float time = _audioTimeSyncController.CurrentJsonTime;
+            float time = _audioTimeSyncController.CurrentSongBpmTime;
             float seconds = _audioTimeSyncController.CurrentSeconds;
 
             beatleader_analyzer.BeatmapScanner.Data.Ratings data = AnalyzerData.FirstOrDefault();
