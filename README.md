@@ -7,7 +7,8 @@ Display BeatLeader Pass, Tech, Acc and Star rating for the full map and for an a
 ### How to install
 Download the latest release (Ratings.zip) here: https://github.com/Loloppe/ChroMapper_Ratings/releases/latest  
 Extract the .zip inside your ChroMapper folder  
-Your Plugins folder should now include the files: Ratings.dll, model_sleep_4LSTM_acc.onnx and model_sleep_4LSTM_speed.onnx
+Your Plugins folder should now include the files: Ratings.dll, model_sleep_bl.onnx
+The ChroMapper_Data\Plugins\x86_64 folder should include: onnxruntime.dll
 
 ### How to use
 
