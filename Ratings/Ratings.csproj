@@ -94,7 +94,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="dll\native\x64\" />
+	  <Folder Include="dll\native\Mac\" />
+	  <Folder Include="dll\native\Linux\" />
+	  <Folder Include="dll\native\Windows\" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
