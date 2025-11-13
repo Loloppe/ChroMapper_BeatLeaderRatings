@@ -1,4 +1,4 @@
-# Ratings (Windows 11 only)
+# Ratings
 
 ## ChroMapper plugin
 
