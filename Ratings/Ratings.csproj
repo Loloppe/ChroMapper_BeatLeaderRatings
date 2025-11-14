@@ -94,8 +94,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="dll\native\Mac\" />
 	  <Folder Include="dll\native\Linux\" />
+	  <Folder Include="dll\native\Mac\arm64\" />
+	  <Folder Include="dll\native\Mac\x64\" />
 	  <Folder Include="dll\native\Windows\" />
 	</ItemGroup>
 
