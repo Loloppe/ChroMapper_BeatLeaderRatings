@@ -5,7 +5,7 @@
 Display BeatLeader Pass, Tech, Acc and Star rating for the full map and for an average of notes while mapping  
 
 ### How to install
-Download the latest release (Ratings.zip) here: https://github.com/Loloppe/ChroMapper_Ratings/releases/latest  
+Download the latest release here: https://github.com/Loloppe/ChroMapper_Ratings/releases/latest  
 
 All:  
 Make sure that Ratings.dll and model_sleep_bl.onnx are in your main Plugins folder.  
