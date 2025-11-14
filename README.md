@@ -6,9 +6,19 @@ Display BeatLeader Pass, Tech, Acc and Star rating for the full map and for an a
 
 ### How to install
 Download the latest release (Ratings.zip) here: https://github.com/Loloppe/ChroMapper_Ratings/releases/latest  
-Extract the .zip inside your ChroMapper folder  
-Your Plugins folder should now include the files: Ratings.dll, model_sleep_bl.onnx  
-The ChroMapper_Data\Plugins\x86_64 folder should include: onnxruntime.dll
+
+All:  
+Make sure that Ratings.dll and model_sleep_bl.onnx are in your main Plugins folder.  
+
+Windows:  
+Extract onnxruntime.dll in the ChroMapper_Data\Plugins\x86_64 folder.  
+
+Mac:  
+CM.app -> Right click -> Show package contents  
+Extract libonnxruntime.dylib (x64 or arm64) inside Contents\Plugins.  
+  
+Linux:  
+Extract libonnxruntime.so in the ChroMapper_Data\Plugins folder.  
 
 ### How to use
 
