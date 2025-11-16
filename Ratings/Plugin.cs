@@ -54,11 +54,13 @@ namespace Ratings
         public TextMeshProUGUI Label;
 
         private bool _initialized = false;
+        private Scene _currentScene;
 
         [Init]
         private void Init()
         {
             SceneManager.sceneLoaded += SceneLoaded;
+            LoadedDifficultySelectController.LoadedDifficultyChangedEvent += LoadedDifficultyChanged;
             _ui = new UI(this);
             LoadConfigFile();
         }
@@ -80,11 +82,17 @@ namespace Ratings
             File.WriteAllText(path, json);
         }
 
+        private void LoadedDifficultyChanged()
+        {
+            SceneLoaded(_currentScene, LoadSceneMode.Single);
+        }
+
         private async void SceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             _initialized = false;
+            _currentScene = arg0;
 
-            if (arg0.buildIndex == EditorSceneBuildIndex)
+            if (_currentScene.buildIndex == EditorSceneBuildIndex)
             {
                 _mapEditorUI = null;
                 _noteGridContainer = null;
